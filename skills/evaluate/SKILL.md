@@ -1,0 +1,88 @@
+---
+description: |
+  Reads a plan document, analyzes the codebase, and provides detailed critique
+  and suggestions. Auto-detects pre-implementation (plan review) vs
+  post-implementation (audit) mode. Supports path or keyword plan lookup.
+  Use when reviewing plans before implementation or auditing completed work
+  against the original plan. Also supports full-team code review mode.
+---
+
+# Evaluate: Plan Analysis & Critique
+
+When this skill activates, invoke the orchestrator script.
+
+Read `templates/codex-runtime.md` before executing the workflow if you need a
+tooling reminder.
+
+The evaluate script is located relative to this repo root
+(the nearest ancestor containing `README.md`).
+
+## CRITICAL: Progress Tracking
+
+**The orchestrator outputs a phase-todo JSON block at the start of every phase.**
+Mirror it in Codex immediately, ideally with `update_plan`, before doing any
+other work. As you work:
+- Mark items `in_progress` when starting them
+- Mark items `completed` when done
+- Add new items as sub-tasks emerge
+
+**If you skip progress tracking, the user has no visibility into what you are doing.**
+
+## Invocation
+
+Find the repo root directory, then run:
+
+<invoke cmd="python3 [repo-root]/scripts/evaluate/evaluate.py --step 1 --plan '<plan path or keywords>'" />
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `--step` | Yes | Current phase (1-7 for pre, 1-8 for post, 1-5 for review) |
+| `--plan` | Step 1 only (pre/post) | File path or keywords to find the plan |
+| `--mode` | No | Force mode: pre, post, or review (auto-detected if omitted) |
+| `--team` | No | Enable team dispatch in pre/post modes (optional) |
+
+### Review Mode
+
+When `--mode review` is specified, evaluate performs a full-team review of the current implementation:
+
+<invoke cmd="python3 [repo-root]/scripts/evaluate/evaluate.py --step 1 --mode review" />
+
+Review mode does not require a plan — it reviews the current feature branch.
+
+**Team (review mode):** QA Reviewer (lead), Security Reviewer, Architect, Critic, Investigator, Doc-writer
+
+**Phases:**
+1. Team dispatch — all reviewers analyze in parallel
+2. Findings aggregation — collect and deduplicate findings
+3. Remediation loop — fix/re-review until clean
+4. Discussion — interactive review with user
+5. Report — evaluation report
+
+After step 1, `--plan` and `--mode` are not needed — stored in state.
+
+**Pre-implementation phases (7 steps):**
+1. Plan parsing and mode detection
+2. Feasibility analysis (includes performance feasibility and resource constraints)
+3. Completeness analysis (includes operational requirements and deployment steps)
+4. Codebase alignment
+5. Risk & dependency analysis (dependency graph, risk scoring, rollback audit, pre-mortem)
+6. Discussion — interactive review with user
+7. Report
+
+**Post-implementation phases (8 steps):**
+1. Plan parsing
+2. Completeness audit (planned vs implemented)
+3. Correctness review (includes concurrency and resource lifecycle checks)
+4. Code quality review (includes performance anti-patterns)
+5. Performance review (algorithmic complexity, N+1 queries, hot paths, memory, I/O)
+6. Operational readiness (error handling, logging, resource management, deployment, degradation)
+7. Discussion — interactive review with user
+8. Report
+
+## Subsequent steps
+
+<invoke cmd="python3 [repo-root]/scripts/evaluate/evaluate.py --step N" />
+
+Replace N with the step number printed at the end of each phase.
+
+Do NOT analyze or explore first. Run the script and follow its output.

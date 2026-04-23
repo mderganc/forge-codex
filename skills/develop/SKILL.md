@@ -1,0 +1,53 @@
+---
+description: |
+  Investigate, brainstorm, and evaluate solutions for features, bugfixes, or
+  refactors. Spawns an agent team for deep investigation, systematic solution
+  evaluation, and user-controlled approval. Supports autonomy levels
+  (--auto1/--auto2/--auto3) and --quick mode.
+---
+
+# forge-codex Develop — Investigation & Ideation
+
+When this skill activates, invoke the orchestrator script.
+
+Read `templates/codex-runtime.md` before executing the workflow if you need a
+tooling reminder.
+
+## CRITICAL: Progress Tracking
+
+**The orchestrator outputs a phase-todo JSON block at the start of every phase.**
+Mirror it in Codex immediately, ideally with `update_plan`, before doing any
+other work. As you work:
+- Mark items `in_progress` when starting them
+- Mark items `completed` when done
+- Add new items as sub-tasks emerge
+
+**If you skip progress tracking, the user has no visibility into what you are doing.**
+
+## CRITICAL: Continuation Protocol
+
+**This workflow spans many tool calls. You MUST NOT stop between stages.**
+
+After EVERY tool call (especially `exec_command`), immediately check:
+1. Read `.codex/forge-codex/memory/current-step.md` if it exists
+2. Determine your next action based on the current stage
+3. Continue executing — do NOT end your turn
+
+If you are unsure what comes next, re-read this skill and `.codex/forge-codex/memory/current-step.md`.
+
+**When transitioning between stages**, write `.codex/forge-codex/memory/current-step.md`:
+```
+Stage: [N]
+Step: [description]
+Next: [what to do next]
+Status: in-progress
+```
+
+This file is your lifeline if context compaction occurs. Always update it.
+
+## Invocation
+<invoke cmd="python3 [repo-root]/scripts/develop/develop.py --step 1" />
+
+Arguments: --step (1-7), --auto1/--auto2/--auto3, --quick
+
+Do NOT analyze first. Run the script and follow its output.
