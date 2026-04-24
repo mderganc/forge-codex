@@ -26,9 +26,22 @@ LEGACY_RUNTIME_DIRNAME = ".forge"
 EVALUATE_STATE_FILENAME = ".evaluate-state.json"
 
 
+def _blocked_runtime_anchor(base_dir: Path) -> bool:
+    """True when the canonical `.codex` anchor exists but is not a directory."""
+    anchor = base_dir / RUNTIME_ROOT_PARTS[0]
+    return anchor.exists() and not anchor.is_dir()
+
+
 def runtime_root(search_dir: Path | None = None) -> Path:
-    """Return the canonical runtime root for forge-codex artifacts."""
+    """Return the runtime root for forge-codex artifacts.
+
+    Prefer the canonical `.codex/forge-codex` layout, but fall back to the
+    legacy `.forge` runtime when `.codex` is blocked by a file or symlink-like
+    non-directory entry in the repo root.
+    """
     base_dir = search_dir or REPO_ROOT
+    if _blocked_runtime_anchor(base_dir):
+        return base_dir / LEGACY_RUNTIME_DIRNAME
     return base_dir.joinpath(*RUNTIME_ROOT_PARTS)
 
 

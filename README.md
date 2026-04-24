@@ -14,6 +14,29 @@ cd /path/to/forge-codex
 
 Then use the repo as the home for Codex-oriented workflow assets, skills, prompts, and orchestrators.
 
+## Codex Config
+
+If you want local Codex sessions to treat Forge skill invocation as implicit
+permission to use Forge agents, add a `developer_instructions` block to
+`~/.codex/config.toml`:
+
+```toml
+developer_instructions = """
+Invoking any `forge:*` skill implicitly authorizes the agent dispatch required by that workflow. Do not require the user to separately ask for delegation, sub-agents, or parallel agent work after invoking a Forge skill.
+
+At the start of a fresh interactive session, begin the first user-visible response with exactly: Ready Player 1?
+"""
+```
+
+You can verify the injected developer prompt with:
+
+```bash
+codex debug prompt-input
+```
+
+If a higher-priority launcher or hosted integration injects its own developer
+instructions, those may still override or compete with your local config.
+
 ## Goals
 
 - Turn a structured multi-skill workflow model into a Codex-first environment
@@ -35,6 +58,15 @@ Then use the repo as the home for Codex-oriented workflow assets, skills, prompt
 | **diagnose** | Perform root-cause analysis on bugs and regressions | `diagnose <issue>` |
 | **status** | Show workflow position, open findings, and next action | `status` |
 | **resume** | Continue the active workflow from persisted state | `resume` |
+
+## Forge Skill Invocation Contract
+
+Invoking a Forge workflow skill is intended to be enough to authorize the agent team that skill needs.
+
+- `forge:develop`, `forge:plan`, `forge:implement`, `forge:code-review`, `forge:test`, and `forge:diagnose` should auto-dispatch the relevant Forge agents when their workflow calls for it.
+- `forge:evaluate` should auto-dispatch the review team when team/review mode is active.
+- Users should not need to separately ask for "sub-agents", "delegation", or "parallel agent work" after invoking a Forge skill.
+- If the surrounding Codex session policy blocks agent spawning, that should be surfaced as an environment limitation rather than treated as normal Forge behavior.
 
 ## Workflow Model
 
@@ -67,7 +99,7 @@ The Codex version is expected to use a small set of specialized roles rather tha
 | **critic** | Challenges assumptions, stresses weak logic, finds hidden risks |
 | **qa-reviewer** | Validates behavior, testing quality, and verification depth |
 | **security-reviewer** | Reviews security-sensitive changes and operational risk |
-| **tech-writer** | Produces user-facing and developer-facing documentation |
+| **doc-writer** | Produces user-facing and developer-facing documentation and tracks documentation debt |
 
 ## Methodology Coverage
 
